@@ -3,10 +3,13 @@ package com.tarun.composeformkit.design_system.tokens
 import androidx.compose.ui.unit.dp
 
 object AppSpacing {
-    val xxs = 4.dp
-    val xs = 8.dp
-    val sm = 12.dp
-    val md = 16.dp
-    val lg = 24.dp
-    val xl = 32.dp
+    val size5 = 5.dp
+    val size6 = 6.dp
+    val size8 = 8.dp
+    val size10 = 10.dp
+    val size12 = 12.dp
+    val size16 = 16.dp
+    val size20 = 20.dp
+    val size24 = 24.dp
+    val size96 = 96.dp
 }

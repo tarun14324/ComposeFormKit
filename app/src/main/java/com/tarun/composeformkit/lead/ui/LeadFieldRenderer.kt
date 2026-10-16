@@ -1,6 +1,7 @@
 package com.tarun.composeformkit.lead.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import com.tarun.composeformkit.design_system.atoms.AppCheckBoxField
 import com.tarun.composeformkit.design_system.atoms.AppSelectField
@@ -16,31 +17,36 @@ fun LeadFieldRenderer(
     value: String,
     error: String?,
     onValueChange: (String) -> Unit,
-    onFocusLost: () -> Unit
+    onFocusLost: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val required = config.rules.contains(FieldRule.Required)
+    val required = config.rules.any { it == FieldRule.Required }
 
     AppField(
-        label = if (config.type == FieldType.CHECKBOX) "" else config.label,
+        label = if (config.type == FieldType.CHECKBOX) {
+            ""
+        } else {
+            config.label
+        },
         hint = config.hint,
         error = error,
-        required = required
+        required = required,
+        modifier = modifier
     ) {
         when (config.type) {
-            FieldType.TEXT,
-            FieldType.EMAIL,
-            FieldType.TEXTAREA -> {
+            FieldType.TEXT, FieldType.EMAIL, FieldType.TEXTAREA -> {
                 AppTextField(
                     value = value,
                     label = config.label,
+                    showLabel = false,
                     onValueChange = onValueChange,
                     onFocusLost = onFocusLost,
-                    keyboardType = when (config.type) {
-                        FieldType.EMAIL -> KeyboardType.Email
-                        else -> KeyboardType.Text
+                    keyboardType = if (config.type == FieldType.EMAIL) {
+                        KeyboardType.Email
+                    } else {
+                        KeyboardType.Text
                     },
-                    multiline = config.type == FieldType.TEXTAREA,
-                    maxLength = if (config.type == FieldType.TEXTAREA) 200 else null
+                    multiline = config.type == FieldType.TEXTAREA
                 )
             }
 
@@ -56,8 +62,10 @@ fun LeadFieldRenderer(
             FieldType.CHECKBOX -> {
                 AppCheckBoxField(
                     value = value == "true",
-                    label = config.label,
-                    onValueChange = { onValueChange(it.toString()) }
+                    label = if (required) "${config.label} *" else config.label,
+                    onValueChange = { checked ->
+                        onValueChange(checked.toString())
+                    }
                 )
             }
         }
