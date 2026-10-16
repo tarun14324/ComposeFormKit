@@ -32,7 +32,7 @@ fun LeadForm(
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement =
-                Arrangement.spacedBy(AppSpacing.lg)
+                Arrangement.spacedBy(AppSpacing.size20)
         ) {
             var index = 0
 
@@ -51,7 +51,7 @@ fun LeadForm(
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement =
-                            Arrangement.spacedBy(AppSpacing.md)
+                            Arrangement.spacedBy(AppSpacing.size16)
                     ) {
                         Box(Modifier.weight(1f)) {
                             key(current.name) {

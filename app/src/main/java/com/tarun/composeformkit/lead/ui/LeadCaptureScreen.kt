@@ -9,90 +9,86 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.tarun.composeformkit.design_system.atoms.AppButtonField
+import com.tarun.composeformkit.design_system.tokens.AppColors
 import com.tarun.composeformkit.design_system.tokens.AppSpacing
+import com.tarun.composeformkit.design_system.tokens.AppTypography
 import com.tarun.composeformkit.lead.config.LeadFormConfig
 import com.tarun.composeformkit.lead.validation.LeadFormValidator
 
 @Composable
-fun LeadCaptureScreen() {
-
+fun LeadCaptureScreen(
+    isSaving: Boolean,
+    saveError: String?,
+    onSubmit: (Map<String, String>) -> Unit,
+    onClearSaveError: () -> Unit
+) {
     val config = LeadFormConfig.fields
 
-    var values by remember {
-        mutableStateOf(
-            config.associate { field ->
-                field.name to ""
-            }
-        )
+    var values by rememberSaveable {
+        mutableStateOf(config.associate { it.name to "" })
     }
 
-    var errors by remember {
+    var errors by rememberSaveable {
         mutableStateOf<Map<String, String>>(emptyMap())
     }
 
-    var submitted by remember {
-        mutableStateOf(false)
-    }
-
-    var showResult by remember {
+    var submitted by rememberSaveable {
         mutableStateOf(false)
     }
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    // Show only fields whose visibility conditions are satisfied.
     val visibleFields = config.filter { field ->
         val condition = field.visibleWhen
-
         condition == null ||
                 values[condition.fieldName] == condition.equalsValue
     }
+
+    val validationErrors = LeadFormValidator.validate(
+        config = config,
+        values = values
+    )
+
+    val isFormValid = validationErrors.isEmpty()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .imePadding()
-            .padding(horizontal = AppSpacing.md)
+            .padding(horizontal = AppSpacing.size16)
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
+        verticalArrangement = Arrangement.spacedBy(AppSpacing.size16)
     ) {
-
-        Spacer(
-            modifier = Modifier.height(AppSpacing.md)
-        )
+        Spacer(Modifier.height(AppSpacing.size16))
 
         Text(
             text = "Get in touch",
-            style = MaterialTheme.typography.headlineMedium
+            style = AppTypography.headline
         )
 
         Text(
             text = "Tell us a little about yourself.",
-            style = MaterialTheme.typography.bodyMedium
+            style = AppTypography.title
         )
 
         LeadForm(
             fields = visibleFields,
             values = values,
             errors = errors,
-
             onValueChange = { name, newValue ->
-
                 val updatedValues = values + (name to newValue)
                 values = updatedValues
 
-                showResult = false
+                onClearSaveError()
 
                 if (submitted || errors.containsKey(name)) {
                     errors = LeadFormValidator.validate(
@@ -101,64 +97,50 @@ fun LeadCaptureScreen() {
                     )
                 }
             },
-
-            onFocusLost = { _ ->
-                errors = LeadFormValidator.validate(
+            onFocusLost = { name ->
+                val allErrors = LeadFormValidator.validate(
                     config,
                     values
                 )
+
+                // On blur, show the error for this field only.
+                errors = if (allErrors.containsKey(name)) {
+                    errors + (name to allErrors.getValue(name))
+                } else {
+                    errors - name
+                }
             }
         )
 
         AppButtonField(
-            label = "Submit",
+            label = if (isSaving) "Saving..." else "Submit",
+            enabled = isFormValid && !isSaving,
             onClick = {
                 keyboardController?.hide()
                 submitted = true
 
-                val currentErrors = LeadFormValidator.validate(
-                    config,
-                    values
+                val submitErrors = LeadFormValidator.validate(
+                    config = config,
+                    values = values
                 )
 
-                errors = currentErrors
+                errors = submitErrors
 
-                showResult = currentErrors.isEmpty()
+                if (submitErrors.isEmpty() && !isSaving) {
+                    onClearSaveError()
+                    onSubmit(values)
+                }
             }
         )
 
-        if (showResult) {
-
-            HorizontalDivider()
-
+        if (saveError != null) {
             Text(
-                text = "Submitted successfully",
-                style = MaterialTheme.typography.titleMedium
+                text = saveError,
+                color = AppColors.Error,
+                style = AppTypography.headline
             )
-
-            visibleFields.forEach { field ->
-
-                val displayValue =
-                    if (field.type.name == "CHECKBOX") {
-                        if (values[field.name] == "true") {
-                            "Yes"
-                        } else {
-                            "No"
-                        }
-                    } else {
-                        values[field.name].orEmpty()
-                            .ifBlank { "—" }
-                    }
-
-                Text(
-                    text = "${field.label}: $displayValue",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
         }
 
-        Spacer(
-            modifier = Modifier.height(AppSpacing.xl)
-        )
+        Spacer(Modifier.height(AppSpacing.size24))
     }
 }

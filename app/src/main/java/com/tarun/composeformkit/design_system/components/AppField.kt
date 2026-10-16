@@ -3,12 +3,12 @@ package com.tarun.composeformkit.design_system.components
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.tarun.composeformkit.design_system.tokens.AppColors
+import com.tarun.composeformkit.design_system.tokens.AppDimensions.fieldMinHeight
+import com.tarun.composeformkit.design_system.tokens.AppTypography
 
 @Composable
 fun AppField(
@@ -22,12 +22,12 @@ fun AppField(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 80.dp)
+            .heightIn(min = fieldMinHeight)
     ) {
         if (label.isNotBlank()) {
             Text(
                 text = if (required) "$label *" else label,
-                style = MaterialTheme.typography.labelLarge
+                style = AppTypography.body
             )
         }
 
@@ -36,7 +36,7 @@ fun AppField(
         if (hint != null) {
             Text(
                 text = hint,
-                style = MaterialTheme.typography.bodySmall,
+                style = AppTypography.caption,
                 color = AppColors.TextSecondary
             )
         }
@@ -44,7 +44,7 @@ fun AppField(
         if (error != null) {
             Text(
                 text = error,
-                style = MaterialTheme.typography.bodySmall,
+                style = AppTypography.label,
                 color = AppColors.Error
             )
         }

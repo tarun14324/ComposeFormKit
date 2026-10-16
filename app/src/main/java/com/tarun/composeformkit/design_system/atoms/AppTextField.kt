@@ -18,18 +18,15 @@ fun AppTextField(
     modifier: Modifier = Modifier,
     keyboardType: KeyboardType = KeyboardType.Text,
     multiline: Boolean = false,
-    maxLength: Int? = null
+    showLabel: Boolean = true
 ) {
     var wasFocused by remember { mutableStateOf(false) }
 
     OutlinedTextField(
         value = value,
         onValueChange = { newValue ->
-            if (maxLength == null || newValue.length <= maxLength) {
-                onValueChange(newValue)
-            }
+            onValueChange(newValue)
         },
-        label = { Text(label) },
         modifier = modifier
             .fillMaxWidth()
             .onFocusChanged { state ->
@@ -38,9 +35,12 @@ fun AppTextField(
                 }
                 wasFocused = state.isFocused
             },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = keyboardType
-        ),
+        label = if (showLabel) {
+            { Text(label) }
+        } else {
+            null
+        },
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         singleLine = !multiline,
         minLines = if (multiline) 4 else 1,
         maxLines = if (multiline) 4 else 1
